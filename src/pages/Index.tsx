@@ -28,6 +28,9 @@ const tips = [
   "💡 При сигнале тревоги не игнорируй — действуй немедленно.",
 ];
 
+const FLOOD_IMG = "https://cdn.poehali.dev/projects/fa690946-7483-4689-8012-d8e14ecfda80/files/0eb3bdac-0510-45b4-aa14-8a6da7e5bf5c.jpg";
+const QUAKE_IMG = "https://cdn.poehali.dev/projects/fa690946-7483-4689-8012-d8e14ecfda80/files/3709c50d-ae57-4641-9cab-f806e503d0cd.jpg";
+
 export default function Index() {
   const [tab, setTab] = useState<Tab>("theory");
   const [readCards, setReadCards] = useState<Set<string>>(new Set());
@@ -94,19 +97,29 @@ export default function Index() {
     setTimeout(() => setNewAchievement(null), 3000);
   };
 
+  const progress = Math.min(
+    100,
+    Math.round(
+      ((readCards.size / 8) * 0.3 +
+        (completedLevels.size / 6) * 0.4 +
+        (stats.quizTotal / 8) * 0.3) *
+        100
+    )
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 font-golos">
       {/* Header */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-20">
+      <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-orange-400 sticky top-0 z-20 shadow-md">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div>
-            <div className="font-bold text-gray-800 text-base leading-tight">
+            <div className="font-bold text-white text-base leading-tight drop-shadow">
               🛡️ Безопасность в ЧС
             </div>
-            <div className="text-xs text-gray-400">Учись действовать правильно</div>
+            <div className="text-xs text-blue-100">Учись действовать правильно</div>
           </div>
-          <div className="flex items-center gap-2 bg-gray-800 text-white px-3 py-1.5 rounded-xl">
-            <span className="text-yellow-400 text-sm">⭐</span>
+          <div className="flex items-center gap-2 bg-white/20 backdrop-blur text-white px-3 py-1.5 rounded-xl border border-white/30">
+            <span className="text-yellow-300 text-sm">⭐</span>
             <span className="font-bold text-sm">{stats.totalPoints}</span>
           </div>
         </div>
@@ -134,44 +147,51 @@ export default function Index() {
         </div>
       )}
 
+      {/* Hero banner */}
+      {tab === "theory" && (
+        <div className="max-w-lg mx-auto px-4 pt-4">
+          <div className="rounded-2xl overflow-hidden shadow-lg flex gap-0 bg-white border border-gray-100">
+            <div className="flex-1 relative overflow-hidden">
+              <img
+                src={FLOOD_IMG}
+                alt="Наводнение"
+                className="w-full h-32 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-blue-900/60 to-transparent flex items-end p-2">
+                <span className="text-white text-xs font-semibold">🌊 Наводнение</span>
+              </div>
+            </div>
+            <div className="flex-1 relative overflow-hidden">
+              <img
+                src={QUAKE_IMG}
+                alt="Землетрясение"
+                className="w-full h-32 object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-orange-900/60 to-transparent flex items-end p-2">
+                <span className="text-white text-xs font-semibold">🌍 Землетрясение</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Progress bar */}
-      <div className="bg-white border-b border-gray-100">
+      <div className="bg-white border-b border-gray-100 mt-4">
         <div className="max-w-lg mx-auto px-4 py-3 space-y-2">
           <div className="flex justify-between text-xs text-gray-400">
             <span>Общий прогресс</span>
-            <span>
-              {Math.min(
-                100,
-                Math.round(
-                  ((readCards.size / 8) * 0.3 +
-                    (completedLevels.size / 6) * 0.4 +
-                    (stats.quizTotal / 8) * 0.3) *
-                    100
-                )
-              )}
-              %
-            </span>
+            <span className="font-semibold text-blue-500">{progress}%</span>
           </div>
-          <div className="w-full bg-gray-100 rounded-full h-2">
+          <div className="w-full bg-gray-100 rounded-full h-2.5">
             <div
-              className="h-2 rounded-full bg-gradient-to-r from-blue-500 to-orange-500 transition-all duration-700"
-              style={{
-                width: `${Math.min(
-                  100,
-                  Math.round(
-                    ((readCards.size / 8) * 0.3 +
-                      (completedLevels.size / 6) * 0.4 +
-                      (stats.quizTotal / 8) * 0.3) *
-                      100
-                  )
-                )}%`,
-              }}
+              className="h-2.5 rounded-full bg-gradient-to-r from-blue-500 to-orange-400 transition-all duration-700 shadow-sm"
+              style={{ width: `${progress}%` }}
             />
           </div>
-          <div className="flex gap-3 text-xs text-gray-400">
-            <span>📚 {readCards.size}/8</span>
-            <span>🎮 {completedLevels.size}/6</span>
-            <span>✏️ {stats.quizTotal}/8</span>
+          <div className="flex gap-3 text-xs">
+            <span className="text-blue-400 font-medium">📚 {readCards.size}/8</span>
+            <span className="text-orange-400 font-medium">🎮 {completedLevels.size}/6</span>
+            <span className="text-purple-400 font-medium">✏️ {stats.quizTotal}/8</span>
           </div>
         </div>
       </div>
@@ -197,19 +217,19 @@ export default function Index() {
       </div>
 
       {/* Bottom nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
         <div className="max-w-lg mx-auto px-2 py-1.5 flex">
           {tabs.map((t) => (
             <button
               key={t.id}
               onClick={() => setTab(t.id)}
               className={`flex-1 flex flex-col items-center gap-0.5 py-2 rounded-xl transition-all ${
-                tab === t.id ? "text-gray-800" : "text-gray-400 hover:text-gray-600"
+                tab === t.id ? "text-blue-600" : "text-gray-400 hover:text-gray-600"
               }`}
             >
               <div
                 className={`p-1.5 rounded-xl transition-colors ${
-                  tab === t.id ? "bg-gray-100" : ""
+                  tab === t.id ? "bg-blue-50" : ""
                 }`}
               >
                 <Icon name={t.icon as "BookOpen"} size={18} />
