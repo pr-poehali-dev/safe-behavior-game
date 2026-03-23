@@ -6,15 +6,17 @@ import QuizSection from "@/components/game/QuizSection";
 import RatingSection from "@/components/game/RatingSection";
 import AchievementsSection from "@/components/game/AchievementsSection";
 import BackpackGame from "@/components/game/BackpackGame";
+import RescueGame from "@/components/game/RescueGame";
 import { PlayerStats } from "@/data/gameData";
 
-type Tab = "theory" | "levels" | "quiz" | "backpack" | "rating" | "achievements";
+type Tab = "theory" | "levels" | "quiz" | "backpack" | "rescue" | "rating" | "achievements";
 
 const tabs: { id: Tab; label: string; icon: string }[] = [
   { id: "theory", label: "Теория", icon: "BookOpen" },
   { id: "levels", label: "Уровни", icon: "Layers" },
   { id: "quiz", label: "Тест", icon: "ClipboardList" },
   { id: "backpack", label: "Рюкзак", icon: "Backpack" },
+  { id: "rescue", label: "Спасатели", icon: "Siren" },
   { id: "rating", label: "Рейтинг", icon: "Trophy" },
   { id: "achievements", label: "Награды", icon: "Star" },
 ];
@@ -214,6 +216,9 @@ export default function Index() {
         )}
         {tab === "rating" && (
           <RatingSection playerPoints={stats.totalPoints} playerName="Ты" />
+        )}
+        {tab === "rescue" && (
+          <RescueGame onComplete={(score) => setStats((s) => ({ ...s, totalPoints: s.totalPoints + score }))} />
         )}
         {tab === "backpack" && (
           <BackpackGame onComplete={(score) => {
