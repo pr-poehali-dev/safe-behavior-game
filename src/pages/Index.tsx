@@ -5,14 +5,16 @@ import LevelsSection from "@/components/game/LevelsSection";
 import QuizSection from "@/components/game/QuizSection";
 import RatingSection from "@/components/game/RatingSection";
 import AchievementsSection from "@/components/game/AchievementsSection";
+import BackpackGame from "@/components/game/BackpackGame";
 import { PlayerStats } from "@/data/gameData";
 
-type Tab = "theory" | "levels" | "quiz" | "rating" | "achievements";
+type Tab = "theory" | "levels" | "quiz" | "backpack" | "rating" | "achievements";
 
 const tabs: { id: Tab; label: string; icon: string }[] = [
   { id: "theory", label: "Теория", icon: "BookOpen" },
   { id: "levels", label: "Уровни", icon: "Layers" },
   { id: "quiz", label: "Тест", icon: "ClipboardList" },
+  { id: "backpack", label: "Рюкзак", icon: "Backpack" },
   { id: "rating", label: "Рейтинг", icon: "Trophy" },
   { id: "achievements", label: "Награды", icon: "Star" },
 ];
@@ -212,6 +214,12 @@ export default function Index() {
         )}
         {tab === "rating" && (
           <RatingSection playerPoints={stats.totalPoints} playerName="Ты" />
+        )}
+        {tab === "backpack" && (
+          <BackpackGame onComplete={(score) => {
+            setStats((s) => ({ ...s, totalPoints: s.totalPoints + score }));
+            showAchievementToast(`Рюкзак проверен! +${score} очков 🎒`);
+          }} />
         )}
         {tab === "achievements" && <AchievementsSection stats={stats} />}
       </div>
