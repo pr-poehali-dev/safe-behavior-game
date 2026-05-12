@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Icon from "@/components/ui/icon";
 import TheorySection from "@/components/game/TheorySection";
 import LevelsSection from "@/components/game/LevelsSection";
@@ -6,7 +6,10 @@ import QuizSection from "@/components/game/QuizSection";
 import RatingSection from "@/components/game/RatingSection";
 import AchievementsSection from "@/components/game/AchievementsSection";
 import BackpackGame from "@/components/game/BackpackGame";
+import AuthModal, { AuthUser } from "@/components/game/AuthModal";
 import { PlayerStats } from "@/data/gameData";
+
+const SCORES_URL = "https://functions.poehali.dev/560c6be4-4d65-4000-bb00-cc28d9d1e3b6";
 
 type Tab = "theory" | "levels" | "quiz" | "backpack" | "rating" | "achievements";
 
@@ -48,6 +51,11 @@ export default function Index() {
   const [tipIndex, setTipIndex] = useState(0);
   const [showTip, setShowTip] = useState(false);
   const [newAchievement, setNewAchievement] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    try { return JSON.parse(localStorage.getItem("cs_user") || "null"); } catch { return null; }
+  });
+  const [showAuth, setShowAuth] = useState(false);
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -77,26 +85,57 @@ export default function Index() {
     const next = new Set(completedLevels);
     next.add(id);
     setCompletedLevels(next);
-    setStats((s) => ({
-      ...s,
-      levelsCompleted: next.size,
-      totalPoints: s.totalPoints + points,
-    }));
+    setStats((s) => {
+      const ns = { ...s, levelsCompleted: next.size, totalPoints: s.totalPoints + points };
+      saveScores(ns, user);
+      return ns;
+    });
     showAchievementToast("Уровень пройден! +20 очков 🎉");
   };
 
   const handleQuizAnswer = (correct: boolean, points: number) => {
-    setStats((s) => ({
-      ...s,
-      quizTotal: s.quizTotal + 1,
-      quizCorrect: correct ? s.quizCorrect + 1 : s.quizCorrect,
-      totalPoints: s.totalPoints + points,
-    }));
+    setStats((s) => {
+      const ns = {
+        ...s,
+        quizTotal: s.quizTotal + 1,
+        quizCorrect: correct ? s.quizCorrect + 1 : s.quizCorrect,
+        totalPoints: s.totalPoints + points,
+      };
+      saveScores(ns, user);
+      return ns;
+    });
   };
 
   const showAchievementToast = (msg: string) => {
     setNewAchievement(msg);
     setTimeout(() => setNewAchievement(null), 3000);
+  };
+
+  const saveScores = (s: PlayerStats, u: AuthUser | null) => {
+    if (!u) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      fetch(`${SCORES_URL}?action=save`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: u.id,
+          total_points: s.totalPoints,
+          quiz_correct: s.quizCorrect,
+          levels_completed: s.levelsCompleted,
+        }),
+      }).catch(() => {});
+    }, 2000);
+  };
+
+  const handleAuth = (u: AuthUser) => {
+    setUser(u);
+    saveScores(stats, u);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("cs_user");
+    setUser(null);
   };
 
   const progress = Math.min(
@@ -122,9 +161,28 @@ export default function Index() {
             </div>
             <div className="text-xs text-blue-100">Учись действовать правильно</div>
           </div>
-          <div className="flex items-center gap-2 bg-white/20 backdrop-blur text-white px-3 py-1.5 rounded-xl border border-white/30">
-            <span className="text-yellow-300 text-sm">⭐</span>
-            <span className="font-bold text-sm">{stats.totalPoints}</span>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 bg-white/20 backdrop-blur text-white px-3 py-1.5 rounded-xl border border-white/30">
+              <span className="text-yellow-300 text-sm">⭐</span>
+              <span className="font-bold text-sm">{stats.totalPoints}</span>
+            </div>
+            {user ? (
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-3 py-1.5 rounded-xl border border-white/30 text-xs font-medium hover:bg-white/30 transition-colors"
+              >
+                <span className="max-w-[70px] truncate">{user.username}</span>
+                <Icon name="LogOut" size={12} />
+              </button>
+            ) : (
+              <button
+                onClick={() => setShowAuth(true)}
+                className="flex items-center gap-1.5 bg-white/20 backdrop-blur text-white px-3 py-1.5 rounded-xl border border-white/30 text-xs font-medium hover:bg-white/30 transition-colors"
+              >
+                <Icon name="LogIn" size={13} />
+                Войти
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -215,7 +273,7 @@ export default function Index() {
           <QuizSection onAnswer={handleQuizAnswer} totalPoints={stats.totalPoints} />
         )}
         {tab === "rating" && (
-          <RatingSection playerPoints={stats.totalPoints} playerName="Ты" />
+          <RatingSection playerPoints={stats.totalPoints} playerName="Ты" user={user} />
         )}
         {tab === "backpack" && (
           <BackpackGame onComplete={(score) => {
@@ -225,6 +283,11 @@ export default function Index() {
         )}
         {tab === "achievements" && <AchievementsSection stats={stats} />}
       </div>
+
+      {/* Auth Modal */}
+      {showAuth && (
+        <AuthModal onClose={() => setShowAuth(false)} onAuth={handleAuth} />
+      )}
 
       {/* Bottom nav */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-20 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
