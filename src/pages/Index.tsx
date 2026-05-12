@@ -6,17 +6,15 @@ import QuizSection from "@/components/game/QuizSection";
 import RatingSection from "@/components/game/RatingSection";
 import AchievementsSection from "@/components/game/AchievementsSection";
 import BackpackGame from "@/components/game/BackpackGame";
-import RescueGame from "@/components/game/RescueGame";
 import { PlayerStats } from "@/data/gameData";
 
-type Tab = "theory" | "levels" | "quiz" | "backpack" | "rescue" | "rating" | "achievements";
+type Tab = "theory" | "levels" | "quiz" | "backpack" | "rating" | "achievements";
 
 const tabs: { id: Tab; label: string; icon: string }[] = [
   { id: "theory", label: "Теория", icon: "BookOpen" },
   { id: "levels", label: "Уровни", icon: "Layers" },
   { id: "quiz", label: "Тест", icon: "ClipboardList" },
   { id: "backpack", label: "Рюкзак", icon: "Backpack" },
-  { id: "rescue", label: "Спасатели", icon: "Siren" },
   { id: "rating", label: "Рейтинг", icon: "Trophy" },
   { id: "achievements", label: "Награды", icon: "Star" },
 ];
@@ -117,8 +115,10 @@ export default function Index() {
       <div className="bg-gradient-to-r from-blue-600 via-blue-500 to-orange-400 sticky top-0 z-20 shadow-md">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
           <div>
-            <div className="font-bold text-white text-base leading-tight drop-shadow">
-              🛡️ Безопасность в ЧС
+            <div className="font-bold text-white text-base leading-tight drop-shadow flex items-center gap-1.5">
+              <img src={FLOOD_IMG} alt="наводнение" className="w-6 h-6 rounded object-cover" />
+              <img src={QUAKE_IMG} alt="землетрясение" className="w-6 h-6 rounded object-cover" />
+              Безопасность в ЧС
             </div>
             <div className="text-xs text-blue-100">Учись действовать правильно</div>
           </div>
@@ -216,9 +216,6 @@ export default function Index() {
         )}
         {tab === "rating" && (
           <RatingSection playerPoints={stats.totalPoints} playerName="Ты" />
-        )}
-        {tab === "rescue" && (
-          <RescueGame onComplete={(score) => setStats((s) => ({ ...s, totalPoints: s.totalPoints + score }))} />
         )}
         {tab === "backpack" && (
           <BackpackGame onComplete={(score) => {
