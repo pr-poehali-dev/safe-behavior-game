@@ -157,7 +157,7 @@ export default function Index() {
             <div className="font-bold text-white text-base leading-tight drop-shadow flex items-center gap-1.5">
               <img src={FLOOD_IMG} alt="наводнение" className="w-6 h-6 rounded object-cover" />
               <img src={QUAKE_IMG} alt="землетрясение" className="w-6 h-6 rounded object-cover" />
-              Безопасность в ЧС
+              Безопасность в природной среде
             </div>
             <div className="text-xs text-blue-100">Учись действовать правильно</div>
           </div>
